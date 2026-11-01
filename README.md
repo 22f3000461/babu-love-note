@@ -1,6 +1,8 @@
-# A little love, just for you 💗
+# For Divyani 💗
 
-A small, phone-friendly love note. Tap anywhere for **I love you 💗**, **ek kissi day do na babu 😘💋**, and a burst of hearts. The main button also works with a keyboard. Reduced-motion preferences are respected.
+A small, phone-friendly love note for Divyani. Tap anywhere for **I love you 💗**, **Divyani, ek kissi day do na babu 😘💋**, and a burst of hearts. The main button also works with a keyboard. Reduced-motion preferences are respected.
+
+Live app: https://babu-love-note.streamlit.app/
 
 ## Run locally
 

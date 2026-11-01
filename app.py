@@ -6,7 +6,7 @@ import streamlit as st
 
 
 st.set_page_config(
-    page_title="A little love, just for you 💗",
+    page_title="For Divyani 💗",
     page_icon="💗",
     layout="wide",
     initial_sidebar_state="collapsed",
