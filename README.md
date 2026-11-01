@@ -6,6 +6,7 @@ A small, phone-friendly love note for Divyani. Every tap shows **I love you 💗
 - thank u yrr for being my constant in my life
 - love u babuuu
 - Nenu ninnu pemistunnaanu 💖
+- being my comfort zone as always
 
 Longer messages stay on screen longer so they are easy to read. The main button also works with a keyboard. Reduced-motion preferences are respected.
 
