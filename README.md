@@ -8,7 +8,7 @@ A small, phone-friendly love note for Divyani. Every tap shows **I love you 💗
 - Nenu ninnu pemistunnaanu 💖
 - being my comfort zone as always
 
-Longer messages stay on screen longer so they are easy to read. The main button also works with a keyboard. Reduced-motion preferences are respected.
+Each popup stays open with **Yes 💖** and **No 🙈** buttons. Hovering over or trying to select No makes the whole note dodge to another position inside the screen. Yes replies **muaahhh 😘💋💖**. Tapping elsewhere opens another random note. The buttons also work with a keyboard, and reduced-motion preferences are respected.
 
 Live app: https://babu-love-note.streamlit.app/
 

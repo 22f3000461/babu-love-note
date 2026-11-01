@@ -122,20 +122,31 @@
     }
     #love-note .footer-heart { color: var(--rose); }
     #love-note .effects { position: fixed; inset: 0; pointer-events: none; z-index: 10; overflow: hidden; }
+    #love-note .popups { position: fixed; inset: 0; pointer-events: none; z-index: 11; }
     #love-note .love-popup {
       position: absolute; width: min(282px, calc(100vw - 24px)); padding: 13px 16px 15px;
       color: #7e2945; background: #fffdf5f7; border: 1px solid #e6adb6;
       border-radius: 18px 18px 18px 4px; text-align: center;
       box-shadow: 0 9px 30px #8e2d4820;
-      animation: love-popup-in 4s ease forwards;
+      pointer-events: auto; animation: love-popup-appear .18s ease-out both;
+      transition: left .16s ease, top .16s ease;
     }
     #love-note .love-popup strong { display: block; font: italic 29px Georgia, serif; margin-bottom: 5px; }
     #love-note .love-popup small { display: block; font: 12px/1.5 "Trebuchet MS", sans-serif; }
+    #love-note .popup-actions { display: flex; justify-content: center; gap: 12px; margin-top: 16px; }
+    #love-note .answer {
+      appearance: none; border: 1px solid #e6adb6; border-radius: 100px;
+      min-width: 86px; min-height: 44px; padding: 10px 16px;
+      font: 700 13px "Trebuchet MS", sans-serif; cursor: pointer;
+    }
+    #love-note .answer.yes { background: var(--rose); color: #fff9f2; border-color: var(--rose); }
+    #love-note .answer.no { background: #fce9df; color: #9b5666; }
+    #love-note .answer:focus-visible { outline: 3px solid #8d4b78; outline-offset: 3px; }
     #love-note .particle { position: absolute; font-size: 21px; animation: love-fly 1.3s ease-out forwards; }
     #love-note .ripple { position: absolute; width: 22px; height: 22px; margin: -11px; border: 1px solid #c85d7d; border-radius: 50%; animation: love-ring .7s ease-out forwards; }
     #love-note .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
     @keyframes love-bob { 0%,100% { transform: translateY(0) rotate(-7deg); } 50% { transform: translateY(-7px) rotate(-3deg); } }
-    @keyframes love-popup-in { 0% { opacity: 0; transform: translateY(12px) scale(.8); } 3%,73% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-26px) scale(.97); } }
+    @keyframes love-popup-appear { from { opacity: 0; transform: translateY(8px) scale(.92); } to { opacity: 1; transform: translateY(0) scale(1); } }
     @keyframes love-fly { 0% { opacity: 0; transform: translate(-50%,-50%) scale(.4); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) rotate(var(--turn)) scale(.7); } }
     @keyframes love-ring { to { transform: scale(6); opacity: 0; } }
     @media (min-width: 1000px) and (min-height: 850px) { #love-note .illustration { margin-bottom: 36px; } }
@@ -166,7 +177,7 @@
     @media (prefers-reduced-motion: reduce) {
       #love-note .illustration { animation: none; }
       #love-note .tap-button { transition: none; }
-      #love-note .love-popup { animation: none; }
+      #love-note .love-popup { animation: none; transition: none; }
     }
   </style>
 </head>
@@ -202,6 +213,7 @@
       <footer class="footer"><span>made with a very full heart <span class="footer-heart">♥</span></span><span>always you. only you.</span></footer>
     </div>
     <div class="effects" aria-hidden="true"></div>
+    <div class="popups"></div>
     <div class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
   </div>
   <script>
@@ -210,6 +222,7 @@
       if (!root || root.dataset.ready) return;
       root.dataset.ready = 'true';
       const effects = root.querySelector('.effects');
+      const popups = root.querySelector('.popups');
       const status = root.querySelector('[role="status"]');
       const button = root.querySelector('.tap-button');
       const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -227,6 +240,12 @@
         window.setTimeout(() => element.remove(), milliseconds);
       }
 
+      function placePopup(popup, left, top) {
+        const box = root.getBoundingClientRect();
+        popup.style.left = `${Math.max(12, Math.min(left, box.width - popup.offsetWidth - 12))}px`;
+        popup.style.top = `${Math.max(12, Math.min(top, box.height - popup.offsetHeight - 12))}px`;
+      }
+
       function showLove(x, y) {
         // Bound the live effect count even during rapid tapping.
         while (effects.childElementCount > 72) effects.firstElementChild.remove();
@@ -234,23 +253,74 @@
         const localX = x - box.left;
         const localY = y - box.top;
         const selectedMessage = tapMessages[Math.floor(Math.random() * tapMessages.length)];
-        const duration = Math.max(4000, Math.min(8000, selectedMessage.length * 65));
         const popup = document.createElement('div');
         popup.className = 'love-popup';
-        popup.style.animationDuration = `${duration}ms`;
+        popup.setAttribute('role', 'dialog');
+        popup.setAttribute('aria-label', 'A love note for Divyani');
         const title = document.createElement('strong');
         title.textContent = 'I love you 💗';
         const message = document.createElement('small');
         message.textContent = selectedMessage;
-        popup.append(title, message);
-        effects.append(popup);
+        const actions = document.createElement('div');
+        actions.className = 'popup-actions';
+        const yes = document.createElement('button');
+        yes.type = 'button';
+        yes.className = 'answer yes';
+        yes.textContent = 'Yes 💖';
+        const no = document.createElement('button');
+        no.type = 'button';
+        no.className = 'answer no';
+        no.textContent = 'No 🙈';
+        actions.append(yes, no);
+        popup.append(title, message, actions);
+        // Keep one interactive note open until an answer or another page tap.
+        popups.replaceChildren(popup);
         const width = popup.offsetWidth;
         const height = popup.offsetHeight;
-        const left = Math.max(12, Math.min(localX - width / 2, box.width - width - 12));
         const top = localY > height + 35 ? localY - height - 20 : localY + 22;
-        popup.style.left = `${left}px`;
-        popup.style.top = `${Math.max(12, Math.min(top, box.height - height - 12))}px`;
-        removeLater(popup, duration);
+        placePopup(popup, localX - width / 2, top);
+
+        let lastDodge = 0;
+        function dodgeNo(event) {
+          event.preventDefault();
+          event.stopPropagation();
+          if (Date.now() - lastDodge < 180) return;
+          lastDodge = Date.now();
+          const screen = root.getBoundingClientRect();
+          const rect = popup.getBoundingClientRect();
+          const right = Math.max(12, screen.width - popup.offsetWidth - 12);
+          const bottom = Math.max(12, screen.height - popup.offsetHeight - 12);
+          const positions = [
+            { x: 12, y: 12 }, { x: right, y: 12 },
+            { x: 12, y: bottom }, { x: right, y: bottom },
+            { x: (12 + right) / 2, y: (12 + bottom) / 2 },
+          ];
+          const distance = point => Math.hypot(point.x - (rect.left - screen.left), point.y - (rect.top - screen.top));
+          const farAway = positions.filter(point => distance(point) > 130);
+          const destination = farAway.length
+            ? farAway[Math.floor(Math.random() * farAway.length)]
+            : positions.sort((a, b) => distance(b) - distance(a))[0];
+          placePopup(popup, destination.x, destination.y);
+          clearTimeout(announcementTimer);
+          status.textContent = 'No ran away! 🙈';
+        }
+
+        no.addEventListener('pointerenter', event => {
+          if (event.pointerType === 'mouse') dodgeNo(event);
+        });
+        no.addEventListener('pointerdown', dodgeNo);
+        no.addEventListener('click', dodgeNo);
+        yes.addEventListener('click', event => {
+          event.stopPropagation();
+          clearTimeout(announcementTimer);
+          title.textContent = 'muaahhh 😘💋💖';
+          message.textContent = 'love u babuuu';
+          actions.remove();
+          const rect = popup.getBoundingClientRect();
+          const screen = root.getBoundingClientRect();
+          placePopup(popup, rect.left - screen.left, rect.top - screen.top);
+          status.textContent = 'muaahhh 😘💋💖 love u babuuu';
+        });
 
         if (!reducedMotion.matches) {
           const ring = document.createElement('span');
@@ -278,6 +348,7 @@
       }
 
       root.addEventListener('pointerdown', event => {
+        if (event.target.closest('.love-popup')) return;
         if (event.button !== 0 && event.pointerType === 'mouse') return;
         showLove(event.clientX, event.clientY);
       });
